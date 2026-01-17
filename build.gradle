@@ -3,16 +3,3 @@ plugins {
     id 'org.jetbrains.kotlin.android' version '1.9.10' apply false
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url "https://github.com/Zekvora/MusicPlayer"
-            credentials {
-                username "Zekvora"
-                password "Gta1235Gtta1235=="
-            }
-        }
-    }
-}
