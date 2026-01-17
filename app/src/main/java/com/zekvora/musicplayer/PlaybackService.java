@@ -19,27 +19,35 @@ public class PlaybackService extends Service {
     private ExoPlayer player;
     private PlayerNotificationManager notificationManager;
 
-    // Уникальный ID уведомления (должен быть постоянным для одного уведомления)
-    private static final int NOTIFICATION_ID = 1;
+    private static final int NOTIFICATION_ID = 1001; // любой уникальный > 0
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // Инициализация ExoPlayer
         player = new ExoPlayer.Builder(this).build();
 
-        // Создаём менеджер уведомлений
+        // Создаём уведомление-строитель (простое, чтобы быстро показать)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, App.PLAYBACK_CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setContentTitle("MusicPlayer")
+                .setContentText("Готов к воспроизведению")
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true); // не смахивается
+
+        // Запускаем как foreground СРАЗУ (важно!)
+        Notification notification = builder.build();
+        startForeground(NOTIFICATION_ID, notification);
+
+        // Теперь можно создать PlayerNotificationManager (он заменит простое уведомление на красивое)
         notificationManager = new PlayerNotificationManager.Builder(
                 this,
                 NOTIFICATION_ID,
                 App.PLAYBACK_CHANNEL_ID
         )
                 .setMediaDescriptionAdapter(new PlayerNotificationManager.MediaDescriptionAdapter() {
-
                     @Override
                     public CharSequence getCurrentContentTitle(Player player) {
-                        // Название трека — пока заглушка, потом берёшь из metadata
                         return player.getCurrentMediaItem() != null
                                 ? player.getCurrentMediaItem().mediaMetadata.title
                                 : "Музыка играет";
@@ -47,7 +55,6 @@ public class PlaybackService extends Service {
 
                     @Override
                     public CharSequence getCurrentContentText(Player player) {
-                        // Подтекст — артист или альбом
                         return player.getCurrentMediaItem() != null
                                 ? player.getCurrentMediaItem().mediaMetadata.artist
                                 : "Неизвестный исполнитель";
@@ -55,7 +62,6 @@ public class PlaybackService extends Service {
 
                     @Override
                     public PendingIntent createCurrentContentIntent(Player player) {
-                        // Клик по уведомлению → открывает MainActivity
                         Intent intent = new Intent(PlaybackService.this, MainActivity.class);
                         return PendingIntent.getActivity(
                                 PlaybackService.this,
@@ -67,38 +73,29 @@ public class PlaybackService extends Service {
 
                     @Override
                     public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
-                        // Пока возвращаем null (уведомление без большой иконки)
-                        // Позже можно добавить загрузку через Glide и callback.onBitmapLoaded()
-                        return null;
+                        return null; // позже добавь обложку
                     }
                 })
-                .setSmallIconResourceId(android.R.drawable.ic_media_play)  // маленькая иконка в статус-баре
-                .setChannelNameResourceId(android.R.string.ok) // можно заменить на свою строку
+                .setSmallIconResourceId(android.R.drawable.ic_media_play)
                 .build();
 
-        // Привязываем плеер к менеджеру уведомлений
         notificationManager.setPlayer(player);
-
-        // Запускаем сервис как foreground (обязательно для Android 9+)
-        // Уведомление будет создано автоматически PlayerNotificationManager
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Здесь можно обрабатывать команды: play, pause, новая песня и т.д.
-        // Пока просто возвращаем START_STICKY — сервис перезапустится при убийстве
+        // Здесь можно добавить логику запуска трека из intent
         return START_STICKY;
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;  // Пока не используем binding
+        return null;
     }
 
     @Override
     public void onDestroy() {
-        // Отключаем уведомление и освобождаем ресурсы
         if (notificationManager != null) {
             notificationManager.setPlayer(null);
         }
