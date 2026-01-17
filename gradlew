@@ -25,13 +25,12 @@
 # Attempt to set APP_HOME
 # Resolve links: $0 may be a symlink
 PRG="$0"
-# Need this for relative symlinks.
 while [ -h "$PRG" ] ; do
     ls -ld "$PRG"
     PRG="`readlink "$PRG"`"
 done
 SAVED="`pwd`"
-cd "`dirname \"$PRG\"`/" >/dev/null
+cd "`dirname "$PRG"`/" >/dev/null
 APP_HOME="`pwd -P`"
 cd "$SAVED" >/dev/null
 
@@ -59,7 +58,6 @@ die () {
 cygwin=false
 msys=false
 darwin=false
-nonstop=false
 case "`uname`" in
   CYGWIN* )
     cygwin=true
@@ -69,9 +67,6 @@ case "`uname`" in
     ;;
   MSYS* | MINGW* )
     msys=true
-    ;;
-  NONSTOP* )
-    nonstop=true
     ;;
 esac
 
@@ -112,44 +107,10 @@ if [ "$cygwin" = true -o "$msys" = true ] ; then
 
     JAVACMD=`cygpath --unix "$JAVACMD"`
 
-    # We build the pattern for arguments to be converted via cygpath
-    ROOTDIRSRAW=`find -L / -maxdepth 3 -type d -name gradle 2>/dev/null | head -n 1`
-    [ -z "$ROOTDIRSRAW" ] && ROOTDIRSRAW=`find -L / -maxdepth 3 -type d -name gradle 2>/dev/null | head -n 1`
-    [ -z "$ROOTDIRSRAW" ] && ROOTDIRSRAW="."
-    for dir in $ROOTDIRSRAW ; do
-        [ -d "$dir" ] || continue
-        dir=`cygpath --path --windows "$dir"`
-        [ -z "$dir" ] && continue
-        ROOTDIRS="$ROOTDIRS$dir
-"
-    done
-    [ -z "$ROOTDIRS" ] && ROOTDIRS=.
-    
 fi
 
-# Escape application args
-save () {
-    for var in "$@"
-    do
-        printf '%s\n' "$var" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/'/" >> "$app_args_file"
-    done
-}
-
-app_path=`cygpath --path --windows "$APP_HOME"` 2>/dev/null
-app_args_file="$app_path/gradle/wrapper/gradle.properties"
-[ -f "$app_args_file" ] && app_args_file=`cygpath --path --windows "$app_args_file"` 2>/dev/null
-
-printf '%s\n' "$@" | grep -E -- "^(-D|-\\-|--)" > /dev/null 2>&1 && {
-    printf '%s\n' "Some of the Gradle options are not supported when using this wrapper." >&2
-    printf '%s\n' "You may need to evaluate some of the JVM options in .gradle/gradle.properties or GRADLE_OPTS." >&2
-}
-
-# Escape application args
-save "$@"
-
 exec "$JAVACMD" \
-  -XX:MaxMetaspaceSize=64m \
-  "${DEFAULT_JVM_OPTS}" \
+  $DEFAULT_JVM_OPTS \
   -classpath "$CLASSPATH" \
   org.gradle.wrapper.GradleWrapperMain \
   "$@"
