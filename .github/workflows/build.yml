@@ -17,20 +17,27 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Setup Android SDK
+      - name: Setup Android SDK (install API 34 + build-tools)
         uses: android-actions/setup-android@v3
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-      - name: Download gradle wrapper jar if missing
+        with:
+          api-level: 34
+          components: "platform-tools,platforms;android-34,build-tools;34.0.0"
+          cache: gradle
+      - name: Make gradlew executable (no-op if missing)
+        run: chmod +x ./gradlew || true
+      - name: Install Gradle (fallback)
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: '8.7'
+      - name: Build APK (use wrapper if present, otherwise installed Gradle)
         run: |
-          mkdir -p gradle/wrapper
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "Downloading gradle-wrapper.jar..."
-            curl -L -o gradle/wrapper/gradle-wrapper.jar https://services.gradle.org/distributions/gradle-8.7-wrapper/gradle-8.7-wrapper.jar
-            ls -lh gradle/wrapper/gradle-wrapper.jar
+          if [ -f ./gradlew ]; then
+            echo "Using project wrapper: ./gradlew assembleDebug"
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          else
+            echo "Wrapper missing or broken — using installed gradle: gradle assembleDebug"
+            gradle assembleDebug --no-daemon --stacktrace
           fi
-      - name: Build APK
-        run: ./gradlew assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         if: always()
