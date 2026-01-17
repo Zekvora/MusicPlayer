@@ -29,14 +29,18 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: '8.7'
-      - name: Build APK (use wrapper if present, otherwise installed Gradle)
+      - name: Build APK (prefer installed Gradle, fallback to wrapper)
         run: |
-          if [ -f ./gradlew ]; then
+          if command -v gradle >/dev/null 2>&1; then
+            echo "Using installed gradle"
+            gradle assembleDebug --no-daemon --stacktrace
+          elif [ -f ./gradlew ] && [ -s gradle/wrapper/gradle-wrapper.jar ]; then
             echo "Using project wrapper: ./gradlew assembleDebug"
             ./gradlew assembleDebug --no-daemon --stacktrace
           else
-            echo "Wrapper missing or broken — using installed gradle: gradle assembleDebug"
-            gradle assembleDebug --no-daemon --stacktrace
+            echo "No usable Gradle found and wrapper missing or invalid"
+            ls -la gradle || true
+            exit 1
           fi
       - name: Upload APK
         uses: actions/upload-artifact@v4
