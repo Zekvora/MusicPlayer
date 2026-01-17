@@ -21,7 +21,10 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           api-level: 34
-          components: "platform-tools,platforms;android-34,build-tools;34.0.0"
+          components: |
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
           cache: gradle
       - name: Make gradlew executable (no-op if missing)
         run: chmod +x ./gradlew || true
